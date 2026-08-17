@@ -1,0 +1,19 @@
+{
+  "features": [
+    "SavingsLossPct",
+    "ExpenditureVariancePct",
+    "FinancialGap",
+    "PMPM",
+    "quality_score",
+    "utilization_score",
+    "ed_visits_per_beneficiary",
+    "admissions_per_beneficiary",
+    "advanced_imaging_per_beneficiary",
+    "em_visit_intensity",
+    "ed_utilization_change_yoy",
+    "admission_change_yoy",
+    "em_utilization_change_yoy",
+    "advanced_imaging_change_yoy",
+    "average_available_risk_score"
+  ]
+}

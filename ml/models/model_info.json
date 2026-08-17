@@ -1,0 +1,16 @@
+{
+  "model_name": "aco_segmentation",
+  "version": "1.0",
+  "model_type": "KMeans",
+  "preprocessing": "StandardScaler",
+  "pipeline": true,
+  "n_clusters": 3,
+  "features_count": 15,
+  "features_file": "features.json",
+  "purpose": "ACO Performance Segmentation",
+  "segments": [
+    "High Performing",
+    "Moderate",
+    "Needs Attention"
+  ]
+}

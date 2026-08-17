@@ -1,0 +1,50 @@
+{
+  "source_table": "aco_segmentation_ml_features",
+  "features": [
+    "SavingsLossPct",
+    "ExpenditureVariancePct",
+    "FinancialGap",
+    "PMPM",
+    "quality_score",
+    "utilization_score",
+    "ed_visits_per_beneficiary",
+    "admissions_per_beneficiary",
+    "advanced_imaging_per_beneficiary",
+    "em_visit_intensity",
+    "ed_utilization_change_yoy",
+    "admission_change_yoy",
+    "em_utilization_change_yoy",
+    "advanced_imaging_change_yoy",
+    "average_available_risk_score"
+  ],
+  "preprocessing": [
+    "numeric conversion",
+    "replace infinite values with NaN",
+    "median imputation",
+    "StandardScaler"
+  ],
+  "imputation_medians": {
+    "SavingsLossPct": 3.68002925126449,
+    "ExpenditureVariancePct": -3.68780540892745,
+    "FinancialGap": -6142219.0,
+    "PMPM": 890.999085577824,
+    "quality_score": 88.98,
+    "utilization_score": 47.5031263026261,
+    "ed_visits_per_beneficiary": 0.0411113321397785,
+    "admissions_per_beneficiary": 0.0178205128205128,
+    "advanced_imaging_per_beneficiary": 0.0669911914696338,
+    "em_visit_intensity": 0.75486846600615,
+    "ed_utilization_change_yoy": 0.06327413856739394,
+    "admission_change_yoy": 0.030094907845788152,
+    "em_utilization_change_yoy": 0.091053706636253,
+    "advanced_imaging_change_yoy": 0.08557710990029545,
+    "average_available_risk_score": 1.0025
+  },
+  "kmeans_k_values": [
+    2,
+    3,
+    4
+  ],
+  "comparison_k": 3,
+  "random_state": 42
+}

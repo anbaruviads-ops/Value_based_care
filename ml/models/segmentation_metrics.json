@@ -1,0 +1,13 @@
+{
+    "model": "KMeans",
+    "n_clusters": 3,
+    "silhouette_score": 0.2840473101981827,
+    "calinski_harabasz_score": 450.3013039491605,
+    "davies_bouldin_score": 1.2108848077522207,
+    "inertia": 16830.76921284963,
+    "cluster_distribution": {
+        "0": 1163,
+        "1": 532,
+        "2": 18
+    }
+}
