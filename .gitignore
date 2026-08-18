@@ -1,0 +1,23 @@
+# Environment variables & secrets (CRITICAL: Never commit to Git)
+.env
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files & archives
+*.zip
+*.log
