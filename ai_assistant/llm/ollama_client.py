@@ -1,6 +1,6 @@
 """
-Ollama Client for Local LLM Inference.
-Communicates with the local Ollama daemon (e.g., llama3.2, mistral) with robust error handling and executive grounded fallback.
+Universal LLM Client supporting Local Ollama, Remote Ollama, Cloud Fallback (Groq / OpenAI),
+and Structured Synthesis.
 """
 
 import json
@@ -19,9 +19,39 @@ def generate_ollama_response(
     timeout: Optional[int] = None
 ) -> str:
     """
-    Sends prompt to Ollama /api/generate endpoint.
-    If Ollama is not running, generates an executive structured synthesis from extracted facts.
+    Orchestrates LLM inference with tiered failover:
+    1. Local/Remote Ollama (Default: llama3.2 on http://localhost:11434)
+    2. Cloud LLM (Groq API - Free fast Llama 3.2 inference if GROQ_API_KEY is present)
+    3. OpenAI API (if OPENAI_API_KEY is present)
+    4. Deterministic Factual Grounding (Zero-crash fallback if completely offline)
     """
+    # Tier 1: Try Ollama
+    ollama_text = _call_ollama(prompt, system_prompt, model, timeout)
+    if ollama_text:
+        return ollama_text
+
+    # Tier 2: Try Groq Cloud (Free Llama 3.2 inference for remote teammates)
+    if settings.GROQ_API_KEY:
+        groq_text = _call_groq_api(prompt, system_prompt)
+        if groq_text:
+            return groq_text
+
+    # Tier 3: Try OpenAI (if configured)
+    if settings.OPENAI_API_KEY:
+        openai_text = _call_openai_api(prompt, system_prompt)
+        if openai_text:
+            return openai_text
+
+    # Tier 4: Factual Fallback Synthesis
+    return _fallback_grounded_synthesis(prompt)
+
+def _call_ollama(
+    prompt: str,
+    system_prompt: str,
+    model: Optional[str],
+    timeout: Optional[int]
+) -> Optional[str]:
+    """Sends generation request to Ollama endpoint."""
     target_model = model or settings.OLLAMA_MODEL
     api_url = f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate"
     req_timeout = timeout or settings.OLLAMA_TIMEOUT_SECONDS
@@ -32,7 +62,7 @@ def generate_ollama_response(
         "system": system_prompt,
         "stream": False,
         "options": {
-            "temperature": 0.1,  # Low temperature for factual precision
+            "temperature": 0.1,
             "top_p": 0.9
         }
     }
@@ -44,22 +74,69 @@ def generate_ollama_response(
             llm_text = result.get("response", "").strip()
             if llm_text:
                 return llm_text
-    except requests.exceptions.RequestException:
-        pass
+    except Exception as e:
+        logger.debug(f"Ollama call failed or offline: {e}")
 
-    return _fallback_grounded_synthesis(prompt)
+    return None
+
+def _call_groq_api(prompt: str, system_prompt: str) -> Optional[str]:
+    """Calls Groq Cloud API for free fast Llama3.2/3.1 inference."""
+    try:
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {settings.GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "llama-3.1-8b-instant",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.1
+        }
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code == 200:
+            data = response.json()
+            return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        logger.warning(f"Groq API call failed: {e}")
+    return None
+
+def _call_openai_api(prompt: str, system_prompt: str) -> Optional[str]:
+    """Calls OpenAI API if configured."""
+    try:
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.1
+        }
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code == 200:
+            data = response.json()
+            return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        logger.warning(f"OpenAI API call failed: {e}")
+    return None
 
 def _fallback_grounded_synthesis(prompt: str) -> str:
     """
     Generates a clean, executive bulleted synthesis directly from the grounded context
-    when Ollama local daemon is offline.
+    when no LLM server is accessible.
     """
-    # Parse extracted data section from prompt
     lines = prompt.splitlines()
     data_section = False
     data_str = ""
     for line in lines:
-        if "VERIFIED DATA EXTRACTED FROM DATABASE:" in line:
+        if "VERIFIED DATA FROM SUPABASE" in line or "VERIFIED DATA EXTRACTED" in line:
             data_section = True
             continue
         if data_section:
@@ -76,7 +153,6 @@ def _fallback_grounded_synthesis(prompt: str) -> str:
     if not data:
         return "No matching analytical records found in the database for the specified parameters."
 
-    # Format synthesis based on available keys
     output_parts = ["**Verified ACO Analytics Summary:**\n"]
 
     if "total_expenditure" in data:

@@ -16,6 +16,10 @@ class Settings:
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2").strip()
     OLLAMA_TIMEOUT_SECONDS: int = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "60"))
 
+    # Cloud LLM Fallback (Optional - for remote teammates without local Ollama)
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "").strip()
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip()
+
     # Server Configuration
     ASSISTANT_HOST: str = os.getenv("ASSISTANT_HOST", "0.0.0.0").strip()
     ASSISTANT_PORT: int = int(os.getenv("ASSISTANT_PORT", "8005"))
