@@ -63,7 +63,9 @@ def _call_ollama(
         "stream": False,
         "options": {
             "temperature": 0.1,
-            "top_p": 0.9
+            "top_p": 0.9,
+            "num_predict": 220,  # Limits token generation to fast executive summaries (~4s)
+            "num_ctx": 2048
         }
     }
 

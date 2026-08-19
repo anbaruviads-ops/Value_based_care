@@ -14,7 +14,7 @@ class Settings:
     # Ollama Configuration
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip()
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2").strip()
-    OLLAMA_TIMEOUT_SECONDS: int = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "60"))
+    OLLAMA_TIMEOUT_SECONDS: int = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120"))
 
     # Cloud LLM Fallback (Optional - for remote teammates without local Ollama)
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "").strip()
