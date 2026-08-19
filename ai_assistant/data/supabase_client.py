@@ -45,25 +45,31 @@ def execute_read_query(
     client = get_supabase_client()
     
     if client:
-        try:
-            query = client.table(table_name).select(select_columns)
-            
-            if filters:
-                for col, val in filters.items():
-                    if val is not None:
-                        # Handle case insensitivity or exact matching
-                        query = query.eq(col, val)
-                        
-            if order_by:
-                query = query.order(order_by, desc=order_desc)
+        candidates = [table_name]
+        if not table_name.endswith("s"):
+            candidates.append(table_name + "s")
+        elif table_name.endswith("s"):
+            candidates.append(table_name[:-1])
+
+        for tbl in candidates:
+            try:
+                query = client.table(tbl).select(select_columns)
                 
-            query = query.limit(limit)
-            response = query.execute()
-            
-            if response and hasattr(response, 'data') and response.data:
-                return response.data
-        except Exception as e:
-            logger.warning(f"Supabase query against {table_name} failed: {e}. Checking fallback mock data.")
+                if filters:
+                    for col, val in filters.items():
+                        if val is not None:
+                            query = query.eq(col, val)
+                            
+                if order_by:
+                    query = query.order(order_by, desc=order_desc)
+                    
+                query = query.limit(limit)
+                response = query.execute()
+                
+                if response and hasattr(response, 'data') and response.data:
+                    return response.data
+            except Exception as e:
+                pass
 
     # Fallback to in-memory mock dataset
     return _query_mock_data(table_name, filters, limit)
